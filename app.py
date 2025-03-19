@@ -33,14 +33,24 @@ def resize_images(image_paths, output_folder, size=(30, 40)):
             img.save(os.path.join(output_folder, os.path.basename(image_path)))
         except Exception as e:
             print(f"Error resizing image {image_path}: {e}")
-
 @app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route("/preferences")
-def preferences():
-    return render_template("preferences.html")
+@app.route('/register')
+def register():
+    return render_template('register.html')
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("home.html")
+@app.route("/my_wardrobe")
+def my_wardrobe():
+    return render_template("MyWardrobe.html")
+
+@app.route("/profile")
+def profile():
+    return render_template("Profile.html")
 
 @app.route("/save_preferences", methods=["POST"])
 def save_preferences():
@@ -110,6 +120,25 @@ def get_recommendations():
     print("Dataset Sample After Filtering:", dataset_filtered.head())
     
     return jsonify({"message": "Recommendations found!", "recommendations": recommendation_list})
+
+BASE_DIR = "Clothing"
+CATEGORIES = {
+    "male": os.path.join(BASE_DIR, "MenClothing"),
+    "female": os.path.join(BASE_DIR, "WomenClothing")
+}
+@app.route('/get_images', methods=['POST'])
+def get_images():
+    data = request.get_json()
+    gender = data.get("gender").lower()
+
+    if gender not in CATEGORIES:
+        return jsonify({"error": "Invalid gender"}), 400
+
+    # Get image file names from the respective folder
+    image_folder = CATEGORIES[gender]
+    images = [f"/static/{gender}/{img}" for img in os.listdir(image_folder) if img.endswith(('png', 'jpg', 'jpeg','webp'))]
+
+    return jsonify({"images": images})
 
 if __name__ == "__main__":
     app.run(debug=True)
